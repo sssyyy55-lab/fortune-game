@@ -1,0 +1,30 @@
+name: Daily Horoscope Update
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # UTC 21:00 = 日本時間 朝6:00
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Generate horoscope
+        run: python3 generate_horoscope.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add horoscope_today.json sns_post.txt fortune_game.html
+          git diff --staged --quiet || git commit -m "Daily horoscope update $(date -u +'%Y-%m-%d')"
+          git push
