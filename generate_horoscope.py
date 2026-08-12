@@ -573,7 +573,7 @@ def build_game_html(data: dict) -> str:
 # ----------------------------------------------------------------------
 
 def main():
-    today = datetime.date.today()
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date()  
     data = generate_today_data(today)
 
     # 1) JSON保存
