@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>山羊座 今日の運勢診断</title>
+<title>今日の運勢診断（蠍座・射手座・山羊座・水瓶座）</title>
 <style>
   :root{
     --washi: #f3ecd9;
@@ -113,6 +113,46 @@
     border-color: var(--shu);
     color: var(--shu-dark);
   }
+  .sign-select{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .sign-btn{
+    font-family: inherit;
+    font-size: 15px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid rgba(150,110,60,0.4);
+    border-radius: 4px;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color: var(--ink);
+    transition: all .15s ease;
+    text-align: left;
+    width: 100%;
+  }
+  .sign-btn:hover{
+    background: rgba(200,57,13,0.08);
+    border-color: var(--shu);
+    color: var(--shu-dark);
+  }
+  .sign-symbol{
+    font-size: 22px;
+    color: var(--shu);
+    width: 30px;
+    text-align:center;
+    flex-shrink:0;
+  }
+  .sign-name{
+    flex:1;
+    font-size: 15px;
+  }
+  .sign-period{
+    font-size: 11px;
+    color: var(--ink-soft);
+    flex-shrink:0;
+  }
   .start-btn, .restart-btn{
     display:block;
     margin: 8px auto 0;
@@ -131,6 +171,20 @@
     transform: translateY(2px);
     box-shadow: 0 1px 0 var(--shu-dark);
   }
+  .back-btn{
+    display:block;
+    margin: 12px auto 0;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: .1em;
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .back-btn:hover{ color: var(--shu-dark); }
   .intro-text{
     text-align:center;
     font-size: 13px;
@@ -149,6 +203,13 @@
     background: rgba(150,110,60,0.3);
   }
   .dot.active{ background: var(--shu); }
+  .result-sign{
+    text-align:center;
+    font-size: 13px;
+    letter-spacing: .15em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
   .result-title{
     text-align:center;
     font-size: 12px;
@@ -216,6 +277,11 @@
     font-size: 13px;
     line-height: 1.8;
   }
+  .result-actions{
+    display:flex;
+    flex-direction:column;
+    gap: 8px;
+  }
   footer{
     text-align:center;
     font-size: 10px;
@@ -243,19 +309,50 @@
 
 <div class="container">
   <header>
-    <div class="kamon">卯</div>
-    <h1>今日の山羊座 診断</h1>
-    <div class="sub">CAPRICORN DAILY FORTUNE</div>
+    <div class="kamon" id="kamon">占</div>
+    <h1 id="page-title">今日の運勢診断</h1>
+    <div class="sub" id="page-sub">CHOOSE YOUR SIGN</div>
   </header>
 
+  <!-- SELECT -->
+  <div class="card" id="screen-select">
+    <p class="intro-text">
+      占いたい星座を選んでください。<br>
+      <span style="color:var(--shu-dark);">2026年9月6日</span>
+    </p>
+    <div class="sign-select">
+      <button class="sign-btn" onclick="selectSign('蠍座')">
+        <span class="sign-symbol">♏︎</span>
+        <span class="sign-name">蠍座</span>
+        <span class="sign-period">10/24〜11/22</span>
+      </button>
+      <button class="sign-btn" onclick="selectSign('射手座')">
+        <span class="sign-symbol">♐︎</span>
+        <span class="sign-name">射手座</span>
+        <span class="sign-period">11/23〜12/21</span>
+      </button>
+      <button class="sign-btn" onclick="selectSign('山羊座')">
+        <span class="sign-symbol">♑︎</span>
+        <span class="sign-name">山羊座</span>
+        <span class="sign-period">12/22〜1/19</span>
+      </button>
+      <button class="sign-btn" onclick="selectSign('水瓶座')">
+        <span class="sign-symbol">♒︎</span>
+        <span class="sign-name">水瓶座</span>
+        <span class="sign-period">1/20〜2/18</span>
+      </button>
+    </div>
+  </div>
+
   <!-- INTRO -->
-  <div class="card" id="screen-intro">
+  <div class="card hidden" id="screen-intro">
     <p class="intro-text">
       いくつかの質問に答えると、<br>
       今日のあなたに必要な運勢を占います。<br>
-      <span style="color:var(--shu-dark);">2026年9月6日</span> の山羊座
+      <span style="color:var(--shu-dark);">2026年9月6日</span> の <span id="intro-sign"></span>
     </p>
     <button class="start-btn" onclick="startQuiz()">診断をはじめる</button>
+    <button class="back-btn" onclick="backToSelect()">星座を選び直す</button>
   </div>
 
   <!-- QUIZ -->
@@ -268,6 +365,7 @@
 
   <!-- RESULT -->
   <div class="card hidden" id="screen-result">
+    <div class="result-sign" id="result-sign"></div>
     <div class="result-title">今日、あなたが向き合うテーマは</div>
     <div class="result-type" id="result-type"></div>
     <div class="stars" id="result-stars"></div>
@@ -286,15 +384,21 @@
       <div>ラッキーナンバー<b id="lucky-number"></b></div>
     </div>
 
-    <button class="restart-btn" onclick="restartQuiz()">もう一度診断する</button>
+    <div class="result-actions">
+      <button class="restart-btn" onclick="restartQuiz()">もう一度診断する</button>
+      <button class="back-btn" onclick="backToSelect()">他の星座を見る</button>
+    </div>
   </div>
 
-  <footer>2026年9月6日 ・ 山羊座の今日の運勢より</footer>
+  <footer id="footer-text">2026年9月6日 ・ 今日の運勢より</footer>
 </div>
 
 <script>
-// ---- 今日の運勢データ(スクリプトにより毎朝自動更新) ----
-const TODAY = {"date": "2026-09-06", "date_jp": "2026年9月6日", "sign": "山羊座", "overall_score": 4, "headline": "積み重ねてきたものが評価される日", "love": "一人の時間を大切にすることで、かえって魅力が増す一日。", "work": "責任感が評価され、任される仕事の幅が広がりそう。", "money": "無駄遣いを見直すことで、思わぬ余裕が生まれそう。", "health": "睡眠の質を意識すると、一日のパフォーマンスが上がります。", "advice": "予定に余白を作ると、心にもゆとりが生まれます。", "lucky_color": "山吹色", "lucky_item": "湯呑み", "lucky_number": 1};
+// ---- 今日の運勢データ(スクリプトにより毎朝自動更新、星座名をキーにした4星座分) ----
+const ALL_SIGNS = {"蠍座": {"sign": "蠍座", "overall_score": 4, "headline": "誠実さが思わぬ形で報われる日", "love": "焦って距離を縮めようとせず、相手のペースに合わせると◎。", "work": "周囲との連携がスムーズに進む日。一人で抱え込まず相談を。", "money": "節約より「価値ある使い方」を意識すると満足度アップ。", "health": "軽いストレッチや散歩が、心身のバランスを整えてくれそう。", "advice": "完璧を求めすぎず、六割の出来で前に進んでみて。", "lucky_color": "紅梅色", "lucky_item": "手帳", "lucky_number": 7}, "射手座": {"sign": "射手座", "overall_score": 3, "headline": "積み重ねてきたものが評価される日", "love": "さりげない気配りが、相手の心をつかむきっかけに。", "work": "周囲との連携がスムーズに進む日。一人で抱え込まず相談を。", "money": "無駄遣いを見直すことで、思わぬ余裕が生まれそう。", "health": "無理をせず、休むことも仕事のうちと心得て。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "朱色", "lucky_item": "腕時計", "lucky_number": 9}, "山羊座": {"sign": "山羊座", "overall_score": 3, "headline": "積み重ねてきたものが評価される日", "love": "過去の誤解が解ける兆し。素直に歩み寄ってみて。", "work": "地道な作業ほど成果につながりやすいタイミング。手を抜かずコツコツと。", "money": "臨時収入のチャンスあり。情報はしっかり確認を。", "health": "軽いストレッチや散歩が、心身のバランスを整えてくれそう。", "advice": "「まあいいか」と流す勇気も、今日は必要かも。", "lucky_color": "朱色", "lucky_item": "湯呑み", "lucky_number": 2}, "水瓶座": {"sign": "水瓶座", "overall_score": 4, "headline": "地道な努力が、静かに花開く一日", "love": "過去の誤解が解ける兆し。素直に歩み寄ってみて。", "work": "計画の見直しが吉。細部を詰めることで評価が上がります。", "money": "節約より「価値ある使い方」を意識すると満足度アップ。", "health": "深呼吸を意識するだけで、集中力が取り戻せそう。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "紅梅色", "lucky_item": "手帳", "lucky_number": 4}};
+const SIGN_SYMBOLS = {"蠍座": "♏︎", "射手座": "♐︎", "山羊座": "♑︎", "水瓶座": "♒︎"};
+const SIGN_EN_NAMES = {"蠍座": "SCORPIO", "射手座": "SAGITTARIUS", "山羊座": "CAPRICORN", "水瓶座": "AQUARIUS"};
+const DATE_JP = "2026年9月6日";
 
 // ---- 診断質問(回答ごとに恋愛/仕事/金運/健康のいずれかにポイント) ----
 const QUESTIONS = [
@@ -349,8 +453,37 @@ const AXIS_TYPE = {
   health: "癒し型 〜整えるあなたへ〜"
 };
 
+let currentSignName = null;
+let TODAY = null;
 let current = 0;
 const scores = { love: 0, work: 0, money: 0, health: 0 };
+
+function selectSign(name){
+  currentSignName = name;
+  TODAY = ALL_SIGNS[name];
+
+  document.getElementById('kamon').textContent = SIGN_SYMBOLS[name];
+  document.getElementById('page-title').textContent = name + " 今日の運勢診断";
+  document.getElementById('page-sub').textContent = SIGN_EN_NAMES[name] + " DAILY FORTUNE";
+  document.getElementById('intro-sign').textContent = name;
+
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-intro').classList.remove('hidden');
+}
+
+function backToSelect(){
+  currentSignName = null;
+  TODAY = null;
+  document.getElementById('kamon').textContent = "占";
+  document.getElementById('page-title').textContent = "今日の運勢診断";
+  document.getElementById('page-sub').textContent = "CHOOSE YOUR SIGN";
+  document.getElementById('screen-intro').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+}
 
 function startQuiz(){
   current = 0;
@@ -406,6 +539,7 @@ function showResult(){
   document.getElementById('screen-quiz').classList.add('hidden');
   document.getElementById('screen-result').classList.remove('hidden');
 
+  document.getElementById('result-sign').textContent = SIGN_SYMBOLS[currentSignName] + " " + currentSignName;
   document.getElementById('result-type').textContent = AXIS_TYPE[topAxis];
   document.getElementById('result-stars').textContent =
     "★".repeat(TODAY.overall_score) + "☆".repeat(5 - TODAY.overall_score);
