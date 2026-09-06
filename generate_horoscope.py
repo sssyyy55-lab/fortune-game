@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-山羊座 毎朝運勢ジェネレーター
+蠍座・射手座・山羊座・水瓶座 毎朝運勢ジェネレーター
 ------------------------------------
-実行するたびに「今日の日付」をシード値として、山羊座の運勢データを1つ生成する。
-同じ日に何度実行しても同じ結果になる(日付固定シード)。
+実行するたびに「今日の日付」をシード値として、対象4星座それぞれの運勢データを生成する。
+同じ日に何度実行しても同じ結果になる(日付+星座固定シード)。
 
 生成物:
-  1. horoscope_today.json   … 今日の運勢データ(構造化データ)
-  2. sns_post.txt           … SNS投稿用の短文
-  3. fortune_game.html      … 診断形式の占いゲーム(和紙・朱色デザイン、1ファイル完結)
+  1. horoscope_today.json   … 今日の運勢データ(4星座分、構造化データ)
+  2. sns_post.txt           … SNS投稿用の短文(4星座分をまとめて出力)
+  3. fortune_game.html      … 診断形式の占いゲーム(星座選択画面つき、和紙・朱色デザイン、1ファイル完結)
 
 毎朝の自動実行を想定しているため、日付が変わるだけで内容が更新される。
 """
@@ -22,7 +22,20 @@ import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ----------------------------------------------------------------------
-# 1. データプール
+# 0. 対象星座(誕生月順)
+# ----------------------------------------------------------------------
+
+# 記号のあとの "︎" は文字表示(絵文字化させない)指定。
+# これがないと環境によって色つき絵文字で表示され、朱色のトーンが崩れるため付与している。
+SIGNS = [
+    {"key": "scorpio",     "name": "蠍座",   "en": "SCORPIO",     "symbol": "♏︎", "period": "10/24〜11/22"},
+    {"key": "sagittarius", "name": "射手座", "en": "SAGITTARIUS", "symbol": "♐︎", "period": "11/23〜12/21"},
+    {"key": "capricorn",   "name": "山羊座", "en": "CAPRICORN",   "symbol": "♑︎", "period": "12/22〜1/19"},
+    {"key": "aquarius",    "name": "水瓶座", "en": "AQUARIUS",    "symbol": "♒︎", "period": "1/20〜2/18"},
+]
+
+# ----------------------------------------------------------------------
+# 1. データプール(星座共通)
 # ----------------------------------------------------------------------
 
 HEADLINES = [
@@ -85,17 +98,15 @@ LUCKY_COLORS = ["朱色", "深緑", "生成り", "藍色", "山吹色", "墨色"
 LUCKY_ITEMS = ["万年筆", "手帳", "湯呑み", "腕時計", "折り紙", "扇子", "御守り"]
 
 # ----------------------------------------------------------------------
-# 2. 今日のデータ生成(日付シードで固定)
+# 2. 今日のデータ生成(日付+星座固定シード)
 # ----------------------------------------------------------------------
 
-def generate_today_data(target_date: datetime.date) -> dict:
-    seed = int(target_date.strftime("%Y%m%d"))
+def generate_today_data(target_date: datetime.date, sign_key: str, sign_name: str) -> dict:
+    seed = f"{target_date.isoformat()}_{sign_key}"
     rng = random.Random(seed)
 
     data = {
-        "date": target_date.isoformat(),
-        "date_jp": f"{target_date.year}年{target_date.month}月{target_date.day}日",
-        "sign": "山羊座",
+        "sign": sign_name,
         "overall_score": rng.randint(2, 5),  # 2〜5の星
         "headline": rng.choice(HEADLINES),
         "love": rng.choice(LOVE),
@@ -111,20 +122,25 @@ def generate_today_data(target_date: datetime.date) -> dict:
 
 
 # ----------------------------------------------------------------------
-# 3. SNS投稿用テキスト生成
+# 3. SNS投稿用テキスト生成(4星座分をまとめる)
 # ----------------------------------------------------------------------
 
-def build_sns_post(data: dict) -> str:
+def build_sns_post(date_jp: str, data: dict) -> str:
     stars = "★" * data["overall_score"] + "☆" * (5 - data["overall_score"])
     text = (
-        f"【今日の山羊座】{data['date_jp']}\n"
+        f"【今日の{data['sign']}】{date_jp}\n"
         f"{stars}\n"
         f"{data['headline']}。\n"
         f"✨ラッキーカラー：{data['lucky_color']}／ラッキーアイテム：{data['lucky_item']}\n"
         f"{data['advice']}\n"
-        f"#今日の運勢 #山羊座 #占い"
+        f"#今日の運勢 #{data['sign']} #占い"
     )
     return text
+
+
+def build_all_sns_posts(date_jp: str, signs_data: dict) -> str:
+    blocks = [build_sns_post(date_jp, signs_data[sign["name"]]) for sign in SIGNS]
+    return "\n\n".join(blocks)
 
 
 # ----------------------------------------------------------------------
@@ -136,7 +152,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>山羊座 今日の運勢診断</title>
+<title>今日の運勢診断（蠍座・射手座・山羊座・水瓶座）</title>
 <style>
   :root{
     --washi: #f3ecd9;
@@ -246,6 +262,46 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     border-color: var(--shu);
     color: var(--shu-dark);
   }
+  .sign-select{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .sign-btn{
+    font-family: inherit;
+    font-size: 15px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid rgba(150,110,60,0.4);
+    border-radius: 4px;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    color: var(--ink);
+    transition: all .15s ease;
+    text-align: left;
+    width: 100%;
+  }
+  .sign-btn:hover{
+    background: rgba(200,57,13,0.08);
+    border-color: var(--shu);
+    color: var(--shu-dark);
+  }
+  .sign-symbol{
+    font-size: 22px;
+    color: var(--shu);
+    width: 30px;
+    text-align:center;
+    flex-shrink:0;
+  }
+  .sign-name{
+    flex:1;
+    font-size: 15px;
+  }
+  .sign-period{
+    font-size: 11px;
+    color: var(--ink-soft);
+    flex-shrink:0;
+  }
   .start-btn, .restart-btn{
     display:block;
     margin: 8px auto 0;
@@ -264,6 +320,20 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     transform: translateY(2px);
     box-shadow: 0 1px 0 var(--shu-dark);
   }
+  .back-btn{
+    display:block;
+    margin: 12px auto 0;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: .1em;
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .back-btn:hover{ color: var(--shu-dark); }
   .intro-text{
     text-align:center;
     font-size: 13px;
@@ -282,6 +352,13 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     background: rgba(150,110,60,0.3);
   }
   .dot.active{ background: var(--shu); }
+  .result-sign{
+    text-align:center;
+    font-size: 13px;
+    letter-spacing: .15em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
   .result-title{
     text-align:center;
     font-size: 12px;
@@ -349,6 +426,11 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
     font-size: 13px;
     line-height: 1.8;
   }
+  .result-actions{
+    display:flex;
+    flex-direction:column;
+    gap: 8px;
+  }
   footer{
     text-align:center;
     font-size: 10px;
@@ -376,19 +458,31 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 
 <div class="container">
   <header>
-    <div class="kamon">卯</div>
-    <h1>今日の山羊座 診断</h1>
-    <div class="sub">CAPRICORN DAILY FORTUNE</div>
+    <div class="kamon" id="kamon">占</div>
+    <h1 id="page-title">今日の運勢診断</h1>
+    <div class="sub" id="page-sub">CHOOSE YOUR SIGN</div>
   </header>
 
+  <!-- SELECT -->
+  <div class="card" id="screen-select">
+    <p class="intro-text">
+      占いたい星座を選んでください。<br>
+      <span style="color:var(--shu-dark);">%%DATE_JP%%</span>
+    </p>
+    <div class="sign-select">
+%%SIGN_BUTTONS%%
+    </div>
+  </div>
+
   <!-- INTRO -->
-  <div class="card" id="screen-intro">
+  <div class="card hidden" id="screen-intro">
     <p class="intro-text">
       いくつかの質問に答えると、<br>
       今日のあなたに必要な運勢を占います。<br>
-      <span style="color:var(--shu-dark);">%%DATE_JP%%</span> の山羊座
+      <span style="color:var(--shu-dark);">%%DATE_JP%%</span> の <span id="intro-sign"></span>
     </p>
     <button class="start-btn" onclick="startQuiz()">診断をはじめる</button>
+    <button class="back-btn" onclick="backToSelect()">星座を選び直す</button>
   </div>
 
   <!-- QUIZ -->
@@ -401,6 +495,7 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
 
   <!-- RESULT -->
   <div class="card hidden" id="screen-result">
+    <div class="result-sign" id="result-sign"></div>
     <div class="result-title">今日、あなたが向き合うテーマは</div>
     <div class="result-type" id="result-type"></div>
     <div class="stars" id="result-stars"></div>
@@ -419,15 +514,21 @@ HTML_TEMPLATE = r"""<!DOCTYPE html>
       <div>ラッキーナンバー<b id="lucky-number"></b></div>
     </div>
 
-    <button class="restart-btn" onclick="restartQuiz()">もう一度診断する</button>
+    <div class="result-actions">
+      <button class="restart-btn" onclick="restartQuiz()">もう一度診断する</button>
+      <button class="back-btn" onclick="backToSelect()">他の星座を見る</button>
+    </div>
   </div>
 
-  <footer>%%DATE_JP%% ・ 山羊座の今日の運勢より</footer>
+  <footer id="footer-text">%%DATE_JP%% ・ 今日の運勢より</footer>
 </div>
 
 <script>
-// ---- 今日の運勢データ(スクリプトにより毎朝自動更新) ----
-const TODAY = %%DATA_JSON%%;
+// ---- 今日の運勢データ(スクリプトにより毎朝自動更新、星座名をキーにした4星座分) ----
+const ALL_SIGNS = %%DATA_JSON%%;
+const SIGN_SYMBOLS = %%SYMBOLS_JSON%%;
+const SIGN_EN_NAMES = %%EN_NAMES_JSON%%;
+const DATE_JP = "%%DATE_JP%%";
 
 // ---- 診断質問(回答ごとに恋愛/仕事/金運/健康のいずれかにポイント) ----
 const QUESTIONS = [
@@ -482,8 +583,37 @@ const AXIS_TYPE = {
   health: "癒し型 〜整えるあなたへ〜"
 };
 
+let currentSignName = null;
+let TODAY = null;
 let current = 0;
 const scores = { love: 0, work: 0, money: 0, health: 0 };
+
+function selectSign(name){
+  currentSignName = name;
+  TODAY = ALL_SIGNS[name];
+
+  document.getElementById('kamon').textContent = SIGN_SYMBOLS[name];
+  document.getElementById('page-title').textContent = name + " 今日の運勢診断";
+  document.getElementById('page-sub').textContent = SIGN_EN_NAMES[name] + " DAILY FORTUNE";
+  document.getElementById('intro-sign').textContent = name;
+
+  document.getElementById('screen-select').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-intro').classList.remove('hidden');
+}
+
+function backToSelect(){
+  currentSignName = null;
+  TODAY = null;
+  document.getElementById('kamon').textContent = "占";
+  document.getElementById('page-title').textContent = "今日の運勢診断";
+  document.getElementById('page-sub').textContent = "CHOOSE YOUR SIGN";
+  document.getElementById('screen-intro').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-select').classList.remove('hidden');
+}
 
 function startQuiz(){
   current = 0;
@@ -539,6 +669,7 @@ function showResult(){
   document.getElementById('screen-quiz').classList.add('hidden');
   document.getElementById('screen-result').classList.remove('hidden');
 
+  document.getElementById('result-sign').textContent = SIGN_SYMBOLS[currentSignName] + " " + currentSignName;
   document.getElementById('result-type').textContent = AXIS_TYPE[topAxis];
   document.getElementById('result-stars').textContent =
     "★".repeat(TODAY.overall_score) + "☆".repeat(5 - TODAY.overall_score);
@@ -561,10 +692,32 @@ function restartQuiz(){
 """
 
 
-def build_game_html(data: dict) -> str:
-    data_json = json.dumps(data, ensure_ascii=False)
-    html = HTML_TEMPLATE.replace("%%DATA_JSON%%", data_json)
-    html = html.replace("%%DATE_JP%%", data["date_jp"])
+def build_game_html(date_jp: str, signs_data: dict) -> str:
+    button_lines = []
+    symbols = {}
+    en_names = {}
+    for sign in SIGNS:
+        symbols[sign["name"]] = sign["symbol"]
+        en_names[sign["name"]] = sign["en"]
+        button_lines.append(
+            "      <button class=\"sign-btn\" onclick=\"selectSign('{name}')\">\n"
+            "        <span class=\"sign-symbol\">{symbol}</span>\n"
+            "        <span class=\"sign-name\">{name}</span>\n"
+            "        <span class=\"sign-period\">{period}</span>\n"
+            "      </button>".format(name=sign["name"], symbol=sign["symbol"], period=sign["period"])
+        )
+    sign_buttons_html = "\n".join(button_lines)
+
+    data_json = json.dumps(signs_data, ensure_ascii=False)
+    symbols_json = json.dumps(symbols, ensure_ascii=False)
+    en_names_json = json.dumps(en_names, ensure_ascii=False)
+
+    html = HTML_TEMPLATE
+    html = html.replace("%%SIGN_BUTTONS%%", sign_buttons_html)
+    html = html.replace("%%DATA_JSON%%", data_json)
+    html = html.replace("%%SYMBOLS_JSON%%", symbols_json)
+    html = html.replace("%%EN_NAMES_JSON%%", en_names_json)
+    html = html.replace("%%DATE_JP%%", date_jp)
     return html
 
 
@@ -572,23 +725,36 @@ def build_game_html(data: dict) -> str:
 # 5. メイン処理
 # ----------------------------------------------------------------------
 
-def main():
-    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date()  
-    data = generate_today_data(today)
+JST = datetime.timezone(datetime.timedelta(hours=9))
 
-    # 1) JSON保存
+
+def main():
+    today = datetime.datetime.now(JST).date()
+    date_jp = f"{today.year}年{today.month}月{today.day}日"
+
+    signs_data = {}
+    for sign in SIGNS:
+        signs_data[sign["name"]] = generate_today_data(today, sign["key"], sign["name"])
+
+    full_data = {
+        "date": today.isoformat(),
+        "date_jp": date_jp,
+        "signs": signs_data,
+    }
+
+    # 1) JSON保存(4星座分)
     json_path = os.path.join(SCRIPT_DIR, "horoscope_today.json")
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(full_data, f, ensure_ascii=False, indent=2)
 
-    # 2) SNS投稿文
-    sns_text = build_sns_post(data)
+    # 2) SNS投稿文(4星座分をまとめて出力)
+    sns_text = build_all_sns_posts(date_jp, signs_data)
     sns_path = os.path.join(SCRIPT_DIR, "sns_post.txt")
     with open(sns_path, "w", encoding="utf-8") as f:
         f.write(sns_text)
 
-    # 3) 診断ゲームHTML
-    html = build_game_html(data)
+    # 3) 診断ゲームHTML(星座選択画面つき)
+    html = build_game_html(date_jp, signs_data)
     html_path = os.path.join(SCRIPT_DIR, "fortune_game.html")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
