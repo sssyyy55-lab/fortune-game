@@ -318,7 +318,7 @@
   <div class="card" id="screen-select">
     <p class="intro-text">
       占いたい星座を選んでください。<br>
-      <span style="color:var(--shu-dark);">2026年9月6日</span>
+      <span style="color:var(--shu-dark);">2026年9月7日</span>
     </p>
     <div class="sign-select">
       <button class="sign-btn" onclick="selectSign('蠍座')">
@@ -349,7 +349,7 @@
     <p class="intro-text">
       いくつかの質問に答えると、<br>
       今日のあなたに必要な運勢を占います。<br>
-      <span style="color:var(--shu-dark);">2026年9月6日</span> の <span id="intro-sign"></span>
+      <span style="color:var(--shu-dark);">2026年9月7日</span> の <span id="intro-sign"></span>
     </p>
     <button class="start-btn" onclick="startQuiz()">診断をはじめる</button>
     <button class="back-btn" onclick="backToSelect()">星座を選び直す</button>
@@ -390,15 +390,15 @@
     </div>
   </div>
 
-  <footer id="footer-text">2026年9月6日 ・ 今日の運勢より</footer>
+  <footer id="footer-text">2026年9月7日 ・ 今日の運勢より</footer>
 </div>
 
 <script>
 // ---- 今日の運勢データ(スクリプトにより毎朝自動更新、星座名をキーにした4星座分) ----
-const ALL_SIGNS = {"蠍座": {"sign": "蠍座", "overall_score": 4, "headline": "誠実さが思わぬ形で報われる日", "love": "焦って距離を縮めようとせず、相手のペースに合わせると◎。", "work": "周囲との連携がスムーズに進む日。一人で抱え込まず相談を。", "money": "節約より「価値ある使い方」を意識すると満足度アップ。", "health": "軽いストレッチや散歩が、心身のバランスを整えてくれそう。", "advice": "完璧を求めすぎず、六割の出来で前に進んでみて。", "lucky_color": "紅梅色", "lucky_item": "手帳", "lucky_number": 7}, "射手座": {"sign": "射手座", "overall_score": 3, "headline": "積み重ねてきたものが評価される日", "love": "さりげない気配りが、相手の心をつかむきっかけに。", "work": "周囲との連携がスムーズに進む日。一人で抱え込まず相談を。", "money": "無駄遣いを見直すことで、思わぬ余裕が生まれそう。", "health": "無理をせず、休むことも仕事のうちと心得て。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "朱色", "lucky_item": "腕時計", "lucky_number": 9}, "山羊座": {"sign": "山羊座", "overall_score": 3, "headline": "積み重ねてきたものが評価される日", "love": "過去の誤解が解ける兆し。素直に歩み寄ってみて。", "work": "地道な作業ほど成果につながりやすいタイミング。手を抜かずコツコツと。", "money": "臨時収入のチャンスあり。情報はしっかり確認を。", "health": "軽いストレッチや散歩が、心身のバランスを整えてくれそう。", "advice": "「まあいいか」と流す勇気も、今日は必要かも。", "lucky_color": "朱色", "lucky_item": "湯呑み", "lucky_number": 2}, "水瓶座": {"sign": "水瓶座", "overall_score": 4, "headline": "地道な努力が、静かに花開く一日", "love": "過去の誤解が解ける兆し。素直に歩み寄ってみて。", "work": "計画の見直しが吉。細部を詰めることで評価が上がります。", "money": "節約より「価値ある使い方」を意識すると満足度アップ。", "health": "深呼吸を意識するだけで、集中力が取り戻せそう。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "紅梅色", "lucky_item": "手帳", "lucky_number": 4}};
+const ALL_SIGNS = {"蠍座": {"sign": "蠍座", "overall_score": 2, "headline": "小さな決断が大きな信頼につながる日", "love": "本音を隠さず伝えることで、信頼関係が強まります。", "work": "責任感が評価され、任される仕事の幅が広がりそう。", "money": "貯蓄や資産管理を見直すのに向いている一日。", "health": "睡眠の質を意識すると、一日のパフォーマンスが上がります。", "advice": "完璧を求めすぎず、六割の出来で前に進んでみて。", "lucky_color": "紅梅色", "lucky_item": "折り紙", "lucky_number": 4}, "射手座": {"sign": "射手座", "overall_score": 3, "headline": "地道な努力が、静かに花開く一日", "love": "さりげない気配りが、相手の心をつかむきっかけに。", "work": "新しい提案は今日ではなく、準備を整えてから動くと吉。", "money": "人との金銭のやり取りは、細かい部分まで確認して。", "health": "食生活を整えることで、気持ちも安定しやすい一日。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "藍色", "lucky_item": "扇子", "lucky_number": 1}, "山羊座": {"sign": "山羊座", "overall_score": 4, "headline": "焦らず着実に進むほど道が開ける日", "love": "焦って距離を縮めようとせず、相手のペースに合わせると◎。", "work": "責任感が評価され、任される仕事の幅が広がりそう。", "money": "貯蓄や資産管理を見直すのに向いている一日。", "health": "無理をせず、休むことも仕事のうちと心得て。", "advice": "頼れる人には、素直に頼ってみるのが吉。", "lucky_color": "藍色", "lucky_item": "折り紙", "lucky_number": 6}, "水瓶座": {"sign": "水瓶座", "overall_score": 5, "headline": "計画を見直すと新しい発見がある日", "love": "素直な気持ちを伝えると、関係がぐっと深まりそう。飾らない言葉が響きます。", "work": "計画の見直しが吉。細部を詰めることで評価が上がります。", "money": "臨時収入のチャンスあり。情報はしっかり確認を。", "health": "無理をせず、休むことも仕事のうちと心得て。", "advice": "小さな達成感を積み重ねることが、明日への自信に。", "lucky_color": "生成り", "lucky_item": "万年筆", "lucky_number": 9}};
 const SIGN_SYMBOLS = {"蠍座": "♏︎", "射手座": "♐︎", "山羊座": "♑︎", "水瓶座": "♒︎"};
 const SIGN_EN_NAMES = {"蠍座": "SCORPIO", "射手座": "SAGITTARIUS", "山羊座": "CAPRICORN", "水瓶座": "AQUARIUS"};
-const DATE_JP = "2026年9月6日";
+const DATE_JP = "2026年9月7日";
 
 // ---- 診断質問(回答ごとに恋愛/仕事/金運/健康のいずれかにポイント) ----
 const QUESTIONS = [
